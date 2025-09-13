@@ -1,22 +1,11 @@
-// lib/supabase/server.ts
+
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { Database } from "@/types/database.types";
-
-// Create a type-safe Supabase client
-type TypedSupabaseClient = ReturnType<typeof createServerComponentClient<Database>>;
-
-// ✅ Always await cookies() in App Router
-export const createClient = (): Promise<TypedSupabaseClient> => {
-  const cookieStore = cookies();
-  return Promise.resolve(createServerComponentClient<Database>({
-    cookies: () => cookieStore,
-  }));
-};
+import { supabase } from "./client";
 
 export const getCurrentUser = async () => {
   try {
-    const supabase = await createClient();
     const {
       data: { session },
       error,
@@ -32,22 +21,17 @@ export const getCurrentUser = async () => {
 
 export const getUserProfile = async (userId: string) => {
   try {
-    const supabase = await createClient();
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq('id', userId as string)
+      .eq("id", userId)
       .single();
 
-    if (error) {
-      if (error.code !== "PGRST116") {
-        // Ignore "no rows returned" error
-        console.error("Error fetching user profile:", error);
-      }
-      return null;
+    if (error && error.code !== "PGRST116") {
+      console.error("Error fetching user profile:", error);
     }
 
-    return profile;
+    return profile ?? null;
   } catch (error) {
     console.error("Error in getUserProfile:", error);
     return null;

@@ -1,5 +1,10 @@
+'use client';
+
 import Link from 'next/link';
-import { getCurrentUser } from '@/lib/supabase/server';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { User } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/client';
 
 // Simple button component since shadcn/ui is not installed
 const Button = ({ 
@@ -51,8 +56,21 @@ const Button = ({
   );
 };
 
-export default async function Home() {
-  const user = await getCurrentUser();
+export default function Home() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+
+    getUser();
+  }, []);
+
   const isAuthenticated = !!user;
 
   return (
