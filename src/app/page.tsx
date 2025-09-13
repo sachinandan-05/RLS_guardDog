@@ -1,27 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 
-// Simple button component since shadcn/ui is not installed
-const Button = ({ 
-  children, 
-  variant = 'default', 
+// Simple button component
+const Button = ({
+  children,
+  variant = 'default',
   size = 'default',
   className = '',
-  asChild = false,
-  ...props 
+  ...props
 }: {
   children: React.ReactNode;
   variant?: 'default' | 'outline' | 'ghost' | 'link';
   size?: 'default' | 'sm' | 'lg';
   className?: string;
-  asChild?: boolean;
-  [key: string]: any;
-}) => {
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) => {
   const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
   
   const variants = {
@@ -44,11 +41,6 @@ const Button = ({
     className
   ].join(' ');
 
-  if (asChild && props.as) {
-    const Child = props.as;
-    return <Child className={classNames} {...props}>{children}</Child>;
-  }
-
   return (
     <button className={classNames} {...props}>
       {children}
@@ -58,8 +50,7 @@ const Button = ({
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     const getUser = async () => {
@@ -84,17 +75,17 @@ export default function Home() {
         </div>
         <div className="flex items-center space-x-4">
           {isAuthenticated ? (
-            <Button asChild variant="outline">
-              <Link href="/dashboard">Go to Dashboard</Link>
-            </Button>
+            <Link href="/dashboard">
+              <Button variant="outline">Go to Dashboard</Button>
+            </Link>
           ) : (
             <>
-              <Button asChild variant="ghost">
-                <Link href="/login">Log in</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/signup">Get Started</Link>
-              </Button>
+              <Link href="/login">
+                <Button variant="ghost">Log in</Button>
+              </Link>
+              <Link href="/signup">
+                <Button size="lg">Get Started</Button>
+              </Link>
             </>
           )}
         </div>
@@ -110,14 +101,14 @@ export default function Home() {
             RLS Guard Dog provides robust access control and data protection for your applications with easy-to-implement row-level security policies.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button size="lg" asChild>
-              <Link href={isAuthenticated ? "/dashboard" : "/signup"}>
+            <Link href={isAuthenticated ? "/dashboard" : "/signup"}>
+              <Button size="lg">
                 {isAuthenticated ? 'Go to Dashboard' : 'Get Started for Free'}
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="#features">Learn More</Link>
-            </Button>
+              </Button>
+            </Link>
+            <Link href="#features">
+              <Button size="lg" variant="outline">Learn More</Button>
+            </Link>
           </div>
         </div>
       </main>
@@ -157,11 +148,11 @@ export default function Home() {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
             Join thousands of developers who trust RLS Guard Dog for their data security needs.
           </p>
-          <Button size="lg" asChild>
-            <Link href={isAuthenticated ? "/dashboard" : "/signup"}>
+          <Link href={isAuthenticated ? "/dashboard" : "/signup"}>
+            <Button size="lg">
               {isAuthenticated ? 'Go to Dashboard' : 'Get Started for Free'}
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </section>
 

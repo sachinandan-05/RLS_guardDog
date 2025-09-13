@@ -4,6 +4,10 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Database } from '@/types/database.types';
+
+type Profile = {
+  email: string;
+};
 import { 
   PlusIcon, 
   PencilIcon, 
@@ -12,7 +16,6 @@ import {
   XMarkIcon,
   UserGroupIcon,
   ChartBarIcon,
-  AcademicCapIcon,
   CalendarIcon
 } from '@heroicons/react/24/outline';
 
@@ -46,8 +49,8 @@ export default function ClassroomPage() {
 
       if (error) throw error;
       setClassroom(data || []);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
     }
   };
 
@@ -63,14 +66,17 @@ export default function ClassroomPage() {
 
       if (progressError) throw progressError;
 
-      const formattedData = progressData.map(item => ({
-        ...item,
-        user_email: typeof item.profiles === 'object' && item.profiles !== null ? (item.profiles as any).email : ''
-      }));
+      const formattedData = progressData.map(item => {
+        const profile = item.profiles as Profile | null;
+        return {
+          ...item,
+          user_email: profile?.email || ''
+        };
+      });
 
       setProgress(formattedData);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
@@ -90,8 +96,8 @@ export default function ClassroomPage() {
       await fetchClassroom();
       setNewStudent('');
       setNewNote('');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
     }
   };
 
@@ -111,8 +117,8 @@ export default function ClassroomPage() {
 
       await fetchClassroom();
       setEditingId(null);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
     }
   };
 
@@ -128,8 +134,8 @@ export default function ClassroomPage() {
       if (error) throw error;
 
       await fetchClassroom();
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
     }
   };
 
@@ -178,7 +184,7 @@ export default function ClassroomPage() {
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                   <div className="p-2 bg-indigo-100 rounded-xl">
-                    <AcademicCapIcon className="h-8 w-8 text-indigo-600" />
+                    <UserGroupIcon className="h-8 w-8 text-indigo-600" />
                   </div>
                   Classroom Management
                 </h1>
@@ -236,7 +242,7 @@ export default function ClassroomPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-purple-100 rounded-lg">
-                  <AcademicCapIcon className="h-6 w-6 text-purple-600" />
+                  <UserGroupIcon className="h-6 w-6 text-purple-600" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Active Subjects</p>

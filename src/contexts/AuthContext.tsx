@@ -5,12 +5,18 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 
+type AuthError = {
+  message: string;
+  status?: number;
+  // Add other error properties as needed
+};
+
 type AuthContextType = {
   user: User | null;
   role: 'student' | 'teacher' | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, role: 'student' | 'teacher') => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, role: 'student' | 'teacher') => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 };
 

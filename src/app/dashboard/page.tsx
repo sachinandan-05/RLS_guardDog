@@ -8,12 +8,10 @@ import { Database } from '@/types/database.types';
 import { 
   PlusIcon,
   ChartBarIcon,
-  AcademicCapIcon,
   TrophyIcon,
   CalendarIcon,
   BookOpenIcon,
   XMarkIcon,
-  FireIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
 
@@ -41,8 +39,8 @@ export default function DashboardPage() {
 
       if (error) throw error;
       setProgress(data || []);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
@@ -68,8 +66,8 @@ export default function DashboardPage() {
       await fetchProgress();
       setNewSubject('');
       setNewPercentage('');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
     }
   };
 
