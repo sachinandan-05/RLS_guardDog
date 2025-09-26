@@ -11,20 +11,25 @@ describe('RLS Policies', () => {
 
   // Helper function to create a test user
   const createUser = async (email: string, password: string, role: 'student' | 'teacher') => {
-    const { data, error } = await supabase.auth.signUp({
+    const { data: authData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    if (error) throw error;
+    if (signUpError) throw signUpError;
+
+    // Wait for the profile to be created by the trigger
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Update the profile with the role
-    await supabase
+    const { error: updateError } = await supabase
       .from('profiles')
       .update({ role })
-      .eq('id', data.user?.id);
+        .eq('id', authData.user?.id);
 
-    return data.user;
+    if (updateError) throw updateError;
+
+    return authData.user;
   };
 
   beforeAll(async () => {
@@ -59,13 +64,25 @@ describe('RLS Policies', () => {
 
   describe('Progress Table', () => {
     test('Students can only see their own progress', async () => {
-      // Insert test data
+      // Set up clients with correct tokens
+      await supabase.auth.setSession({
+        access_token: teacherToken,
+        refresh_token: ''
+      });
+
+      // Insert test data as teacher (who has permission)
       await supabase
         .from('progress')
         .insert([
           { user_id: student1Id, subject: 'Math', percentage: 80 },
           { user_id: student2Id, subject: 'Math', percentage: 90 },
         ]);
+
+      // Switch to student1's token
+      await supabase.auth.setSession({
+        access_token: student1Token,
+        refresh_token: ''
+      });
 
       // Test student1 can only see their own progress
       const { data: student1Data } = await supabase
@@ -78,6 +95,12 @@ describe('RLS Policies', () => {
     });
 
     test('Teachers can see all progress', async () => {
+      // Set teacher token
+      await supabase.auth.setSession({
+        access_token: teacherToken,
+        refresh_token: ''
+      });
+
       const { data } = await supabase
         .from('progress')
         .select('*');
@@ -88,6 +111,12 @@ describe('RLS Policies', () => {
 
   describe('Classroom Table', () => {
     test('Students cannot access classroom data', async () => {
+      // Set student token
+      await supabase.auth.setSession({
+        access_token: student1Token,
+        refresh_token: ''
+      });
+
       const { data, error } = await supabase
         .from('classroom')
         .select('*');
@@ -97,6 +126,12 @@ describe('RLS Policies', () => {
     });
 
     test('Teachers can access and modify classroom data', async () => {
+      // Set teacher token
+      await supabase.auth.setSession({
+        access_token: teacherToken,
+        refresh_token: ''
+      });
+
       const { data: insertData, error: insertError } = await supabase
         .from('classroom')
         .insert([

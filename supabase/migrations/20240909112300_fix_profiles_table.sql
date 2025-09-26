@@ -31,7 +31,8 @@ CREATE POLICY "Users can update their own profile"
 ON public.profiles FOR UPDATE 
 USING (auth.uid() = id);
 
--- Recreate the trigger for updated_at
+-- Drop and recreate the trigger for updated_at
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles;
 CREATE TRIGGER update_profiles_updated_at
 BEFORE UPDATE ON public.profiles
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

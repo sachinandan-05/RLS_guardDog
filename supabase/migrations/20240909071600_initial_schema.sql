@@ -44,7 +44,12 @@ RETURNS BOOLEAN AS $$
 $$ LANGUAGE sql SECURITY DEFINER;
 
 -- RLS Policies for profiles
--- Users can view their own profile
+-- Drop existing policies first
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
+
+-- Recreate the policies
 CREATE POLICY "Users can view their own profile" 
 ON public.profiles FOR SELECT 
 USING (auth.uid() = id);
@@ -54,7 +59,20 @@ CREATE POLICY "Users can update their own profile"
 ON public.profiles FOR UPDATE 
 USING (auth.uid() = id);
 
+-- Users can insert their own profile
+CREATE POLICY "Users can insert their own profile"
+ON public.profiles FOR INSERT
+WITH CHECK (auth.uid() = id);
+
 -- RLS Policies for progress
+-- Drop existing policies first
+DROP POLICY IF EXISTS "Students can view their own progress" ON public.progress;
+DROP POLICY IF EXISTS "Teachers can view all progress" ON public.progress;
+DROP POLICY IF EXISTS "Students can insert their own progress" ON public.progress;
+DROP POLICY IF EXISTS "Teachers can insert progress for any student" ON public.progress;
+DROP POLICY IF EXISTS "Students can update their own progress" ON public.progress;
+DROP POLICY IF EXISTS "Teachers can update any progress" ON public.progress;
+
 -- Students can view their own progress
 CREATE POLICY "Students can view their own progress" 
 ON public.progress FOR SELECT 
@@ -86,6 +104,11 @@ ON public.progress FOR UPDATE
 USING (public.is_teacher());
 
 -- RLS Policies for classroom
+-- Drop existing policies first
+DROP POLICY IF EXISTS "Teachers can view all classroom data" ON public.classroom;
+DROP POLICY IF EXISTS "Teachers can insert classroom data" ON public.classroom;
+DROP POLICY IF EXISTS "Teachers can update classroom data" ON public.classroom;
+
 -- Teachers can view all classroom data
 CREATE POLICY "Teachers can view all classroom data" 
 ON public.classroom FOR SELECT 
@@ -118,6 +141,11 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Drop existing triggers first
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles;
+DROP TRIGGER IF EXISTS update_progress_updated_at ON public.progress;
+DROP TRIGGER IF EXISTS update_classroom_updated_at ON public.classroom;
 
 -- Create triggers to update updated_at columns
 CREATE TRIGGER update_profiles_updated_at

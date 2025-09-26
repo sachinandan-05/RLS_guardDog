@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -19,32 +19,87 @@ type AuthMode = 'login' | 'signup';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'student' | 'teacher'>('student');
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [mode, setMode] = useState<AuthMode>('login');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { signIn, signUp } = useAuth();
   const router = useRouter();
+  
+  // Check for email confirmation success message in URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('confirmation_success') === 'true') {
+        setSuccess('Email confirmed successfully! You can now sign in.');
+        // Remove the success message after 5 seconds
+        const timer = setTimeout(() => setSuccess(null), 5000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, []);
+
+  // Reset form when toggling between login/signup
+  const toggleMode = () => {
+    setMode(mode === 'login' ? 'signup' : 'login');
+    setError(null);
+    // Clear name field when switching to login
+    if (mode === 'signup') {
+      setName('');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     try {
       if (mode === 'login') {
-        const { error } = await signIn(email, password);
+        console.log('Login attempt:', { email, mode });
+        const { error, role: userRole } = await signIn(email, password);
+        console.log('Login response:', { error, userRole });
+        
         if (error) throw error;
-        router.push('/dashboard');
+        
+        console.log('Redirecting user with role:', userRole);
+        router.push(userRole === 'teacher' ? '/dashboard/classroom' : '/dashboard');
       } else {
-        const { error } = await signUp(email, password, role);
+        console.log('Signup attempt:', { email, name, role, mode });
+        const { error, requiresConfirmation } = await signUp(email, password, role, name);
+        console.log('Signup response:', { error, requiresConfirmation });
+        
         if (error) throw error;
-        router.push('/dashboard');
+        
+        if (requiresConfirmation) {
+          setSuccess(`A confirmation email has been sent to ${email}. Please check your inbox to verify your email address.`);
+          // Reset form
+          setEmail('');
+          setPassword('');
+          setName('');
+          setMode('login');
+          return;
+        }
       }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      console.error('Auth error:', error);
+      if (error instanceof Error) {
+        if (error.message.includes('security purposes')) {
+          setError('Please wait a moment before trying again (rate limit)');
+        } else if (error.message.includes('already registered')) {
+          setError('This email is already registered. Please sign in instead.');
+          setMode('login');
+        } else {
+          setError(error.message);
+        }
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -100,10 +155,7 @@ export default function LoginPage() {
           
           <div className="mt-4 flex justify-center">
             <button
-              onClick={() => {
-                setMode(mode === 'login' ? 'signup' : 'login');
-                setError(null);
-              }}
+              onClick={toggleMode}
               className="text-indigo-600 hover:text-indigo-700 font-medium text-sm flex items-center gap-1 hover:gap-2 transition-all duration-200"
             >
               {mode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
@@ -135,6 +187,46 @@ export default function LoginPage() {
         {/* Main Form */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           <form className="px-8 py-8 space-y-6" onSubmit={handleSubmit}>
+            {/* Error and Success Messages */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
+                <XMarkIcon className="h-5 w-5 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+            
+            {success && (
+              <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg flex items-center gap-2">
+                <CheckIcon className="h-5 w-5 flex-shrink-0" />
+                <span>{success}</span>
+              </div>
+            )}
+            
+            {/* Name Field (only for signup) */}
+            {mode === 'signup' && (
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <UserIcon className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    autoComplete="name"
+                    required
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    placeholder="Enter your full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+            
             {/* Email Field */}
             <div>
               <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-2">

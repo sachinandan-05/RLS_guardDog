@@ -266,8 +266,8 @@ export default function DashboardPage() {
                           <div className="flex items-center gap-2">
                             <div className="w-full bg-gray-200 rounded-full h-2">
                               <div 
-                                className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(parseInt(newPercentage))}`}
-                                style={{ width: `${newPercentage}%` }}
+                                className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(parseInt(newPercentage))}` }
+                                style={{ width: `${newPercentage}%`  }}
                               ></div>
                             </div>
                             <span className="text-sm text-gray-600">
@@ -315,7 +315,7 @@ export default function DashboardPage() {
                     {progress.map((item, index) => {
                       const performance = getPerformanceLevel(item.percentage);
                       return (
-                        <div key={item.id} className={`p-6 ${index !== progress.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                        <div key={item.id} className={`p-6 ${index !== progress.length - 1 ? 'border-b border-gray-100' : ''}` }>
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center text-white text-sm font-semibold">
@@ -333,7 +333,7 @@ export default function DashboardPage() {
                             <div className="text-right">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="text-2xl">{performance.icon}</span>
-                                <span className={`px-3 py-1 text-sm font-semibold rounded-full border ${getProgressBadge(item.percentage)}`}>
+                                <span className={`px-3 py-1 text-sm font-semibold rounded-full border ${getProgressBadge(item.percentage)}` }>
                                   {item.percentage}%
                                 </span>
                               </div>
@@ -343,8 +343,9 @@ export default function DashboardPage() {
                           
                           <div className="w-full bg-gray-200 rounded-full h-3">
                             <div 
-                              className={`h-3 rounded-full transition-all duration-500 ${getProgressColor(item.percentage)}`}
-                              style={{ width: `${item.percentage}%` }}
+                              className={`h-3 rounded-full transition-all duration-500 ${getProgressColor(item.percentage)}` }
+                              style={{ width: `${item.percentage}%` 
+ }}
                             ></div>
                           </div>
                         </div>

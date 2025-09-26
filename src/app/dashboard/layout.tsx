@@ -44,7 +44,7 @@ function Navbar() {
   const navigation = [
     {
       name: 'Dashboard',
-      href: '/dashboard',
+      href: role === 'teacher' ? '/dashboard/teacher-page' : '/dashboard',
       icon: HomeIcon,
       current: true
     },
@@ -159,6 +159,7 @@ function Navbar() {
                         <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border mt-1 ${getRoleBadgeColor(role || 'user')}`}>
                           <span className="mr-1">{getRoleIcon(role || 'user')}</span>
                           {role || 'User'}
+                         
                         </div>
                       </div>
                     </div>

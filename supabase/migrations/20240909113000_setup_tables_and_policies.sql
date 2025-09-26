@@ -32,6 +32,11 @@ CREATE POLICY "Users can update their own profile"
 ON public.profiles FOR UPDATE 
 USING (auth.uid() = id);
 
+-- Users can insert their own profile
+CREATE POLICY "Users can insert their own profile" 
+ON public.profiles FOR INSERT 
+WITH CHECK (auth.uid() = id);
+
 -- Create trigger for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -98,6 +103,10 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Allow service role to bypass RLS for profiles
 ALTER TABLE public.profiles FORCE ROW LEVEL SECURITY;
+
+-- Drop service role policy if exists
+DROP POLICY IF EXISTS "Service role can access all profiles" ON public.profiles;
+
 CREATE POLICY "Service role can access all profiles" 
 ON public.profiles 
 FOR ALL 
@@ -107,6 +116,10 @@ WITH CHECK (true);
 
 -- Allow service role to bypass RLS for progress
 ALTER TABLE public.progress FORCE ROW LEVEL SECURITY;
+
+-- Drop service role policy if exists
+DROP POLICY IF EXISTS "Service role can access all progress" ON public.progress;
+
 CREATE POLICY "Service role can access all progress" 
 ON public.progress 
 FOR ALL 
